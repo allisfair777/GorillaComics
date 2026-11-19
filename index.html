@@ -28,6 +28,13 @@
         .fade-slide {
             transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
         }
+        @keyframes progressFill {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        .animate-progress {
+            animation: progressFill 15s linear forwards;
+        }
     </style>
 </head>
 <body class="flex flex-col justify-between h-dvh w-screen overflow-hidden bg-[#121214] px-3 py-3 sm:px-6 sm:py-4">
@@ -39,15 +46,21 @@
 
     <!-- Top Glassmorphic Header -->
     <header class="relative z-10 flex items-center justify-between mx-auto w-full max-w-5xl rounded-2xl border border-[#d99b66]/25 bg-white/[0.04] px-3.5 py-2 backdrop-blur-md shadow-lg">
-        <div class="flex items-center gap-2.5">
-            <!-- Custom Rounded-Square Gorilla Emblem -->
-            <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#d99b66]/40 bg-gradient-to-br from-[#2a211b] to-[#161311] shadow-inner">
-                <svg viewBox="0 0 24 24" class="h-5 w-5 text-[#e2a874]" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M8 2h8l1 5H7L8 2z"></path>
-                    <path d="M6 7h12v11a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V7z"></path>
-                    <path d="M10 12h4"></path>
-                    <circle cx="9.5" cy="10" r="0.8" fill="currentColor"></circle>
-                    <circle cx="14.5" cy="10" r="0.8" fill="currentColor"></circle>
+        <div class="flex items-center gap-3">
+            <!-- Tailwind-Styled Gorilla Emblem -->
+            <div class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#d99b66]/50 bg-gradient-to-br from-[#2e231c] via-[#1c1613] to-[#12100e] shadow-[0_0_15px_rgba(217,155,102,0.2)] ring-1 ring-inset ring-white/10">
+                <svg viewBox="0 0 64 64" class="h-6 w-6 text-[#e2a874] drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" fill="currentColor" aria-hidden="true">
+                    <path d="M22 10c0-3.3 4.5-6 10-6s10 2.7 10 6v4H22v-4z" />
+                    <circle cx="13" cy="30" r="5" />
+                    <circle cx="51" cy="30" r="5" />
+                    <path d="M16 24c0-7.7 7.2-12 16-12s16 4.3 16 12v14c0 9.9-7.2 18-16 18s-16-8.1-16-18V24z" />
+                    <path fill="#161311" d="M20 25c3-2 9-2 12 0 3-2 9-2 12 0v4c-3-1.5-9-1.5-12 0-3-1.5-9-1.5-12 0v-4z" />
+                    <circle cx="25" cy="28" r="2.2" />
+                    <circle cx="39" cy="28" r="2.2" />
+                    <ellipse cx="32" cy="40" rx="10" ry="8" fill="#161311" />
+                    <circle cx="28.5" cy="38.5" r="1.8" />
+                    <circle cx="35.5" cy="38.5" r="1.8" />
+                    <path d="M26 44c3.5 2 8.5 2 12 0" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none" />
                 </svg>
             </div>
             <div class="leading-tight">
@@ -59,13 +72,24 @@
         <!-- Episode Index Trigger -->
         <button onclick="toggleDrawer(true)" class="flex items-center gap-1.5 rounded-xl border border-[#d99b66]/30 bg-[#d99b66]/10 px-3 py-1.5 text-xs font-medium text-[#eab98e] transition hover:bg-[#d99b66]/20 active:scale-95 cursor-pointer">
             <i data-lucide="layers" class="h-3.5 w-3.5"></i>
-            <span id="counter-badge">1 / 4</span>
+            <span id="counter-badge">1 / 11</span>
         </button>
     </header>
 
     <!-- Center Stage: Comic Frame Display -->
     <section id="stage-area" class="relative z-10 flex flex-1 items-center justify-center my-2 min-h-0 w-full max-w-6xl mx-auto">
-        <div class="relative flex items-center justify-center h-[calc(100dvh-138px)] w-full max-w-4xl rounded-2xl border border-[#d99b66]/35 bg-[#19191c] p-1.5 sm:p-2 shadow-[0_12px_40px_rgba(0,0,0,0.75)]">
+        <div onclick="handleImageTap(event)" title="Tap to Pause / Resume Slideshow" class="relative flex items-center justify-center h-[calc(100dvh-138px)] w-full max-w-4xl overflow-hidden rounded-2xl border border-[#d99b66]/35 bg-[#19191c] p-1.5 sm:p-2 shadow-[0_12px_40px_rgba(0,0,0,0.75)] cursor-pointer">
+            <!-- 15-Second Slideshow Progress Bar -->
+            <div id="progress-track" class="absolute top-0 left-0 right-0 z-20 h-1 bg-white/5">
+                <div id="progress-bar" class="h-full w-0 bg-gradient-to-r from-[#d99b66]/60 via-[#e2a874] to-[#f2c69d] shadow-[0_0_8px_rgba(226,168,116,0.6)]"></div>
+            </div>
+
+            <!-- Subtle Status Indicator Pill (Flashes on Tap / Toggle) -->
+            <div id="status-pill" class="pointer-events-none absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5 rounded-full border border-[#d99b66]/40 bg-black/75 px-2.5 py-1 text-[11px] font-medium text-[#f2c69d] opacity-0 transition-opacity duration-200 backdrop-blur-md">
+                <i id="status-pill-icon" data-lucide="pause" class="h-3 w-3"></i>
+                <span id="status-pill-text">Paused</span>
+            </div>
+
             <img id="comic-image" src="" alt="Comic Strip" draggable="false" class="h-full w-full rounded-xl object-contain fade-slide">
         </div>
     </section>
@@ -73,25 +97,30 @@
     <!-- Bottom Glassmorphic Control Dock -->
     <footer class="relative z-10 mx-auto flex items-center justify-center gap-1.5 sm:gap-2.5 rounded-2xl border border-[#d99b66]/25 bg-white/[0.04] px-3 py-2 backdrop-blur-md shadow-xl">
         <!-- First Page -->
-        <button onclick="goToComic(0)" id="btn-first" title="First Strip" class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-stone-300 transition hover:border-[#d99b66]/40 hover:text-[#e2a874] disabled:opacity-30 disabled:pointer-events-none active:scale-90 cursor-pointer">
+        <button onclick="manualGoToComic(0)" id="btn-first" title="First Strip" class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-stone-300 transition hover:border-[#d99b66]/40 hover:text-[#e2a874] disabled:opacity-30 disabled:pointer-events-none active:scale-90 cursor-pointer">
             <i data-lucide="chevrons-left" class="h-4 w-4 sm:h-5 sm:w-5"></i>
         </button>
         <!-- Previous -->
-        <button onclick="prevComic()" title="Previous Strip" class="flex h-9 px-3 sm:h-10 sm:px-4 items-center justify-center gap-1 rounded-xl border border-[#d99b66]/30 bg-[#d99b66]/10 text-xs sm:text-sm font-medium text-[#eab98e] transition hover:bg-[#d99b66]/20 active:scale-95 cursor-pointer">
+        <button onclick="manualPrevComic()" title="Previous Strip" class="flex h-9 px-3 sm:h-10 sm:px-4 items-center justify-center gap-1 rounded-xl border border-[#d99b66]/30 bg-[#d99b66]/10 text-xs sm:text-sm font-medium text-[#eab98e] transition hover:bg-[#d99b66]/20 active:scale-95 cursor-pointer">
             <i data-lucide="chevron-left" class="h-4 w-4"></i>
             <span class="hidden sm:inline">Prev</span>
         </button>
+        <!-- Play / Pause Slideshow Toggle -->
+        <button onclick="toggleSlideshow()" id="btn-slideshow" title="Pause Slideshow" class="flex h-9 px-3 sm:h-10 sm:px-3.5 items-center justify-center gap-1.5 rounded-xl border border-[#d99b66]/50 bg-[#d99b66]/20 text-xs sm:text-sm font-medium text-[#f2c69d] shadow-inner transition hover:bg-[#d99b66]/30 active:scale-95 cursor-pointer">
+            <i data-lucide="pause" class="h-4 w-4"></i>
+            <span class="hidden md:inline">Auto</span>
+        </button>
         <!-- Random Shuffle -->
-        <button onclick="randomComic()" title="Random Strip" class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-[#d99b66]/40 bg-gradient-to-b from-[#d99b66]/25 to-[#d99b66]/10 text-[#f2c69d] shadow-inner transition hover:from-[#d99b66]/35 hover:to-[#d99b66]/20 active:scale-90 cursor-pointer">
+        <button onclick="manualRandomComic()" title="Random Strip" class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-[#d99b66]/40 bg-gradient-to-b from-[#d99b66]/25 to-[#d99b66]/10 text-[#f2c69d] shadow-inner transition hover:from-[#d99b66]/35 hover:to-[#d99b66]/20 active:scale-90 cursor-pointer">
             <i data-lucide="shuffle" class="h-4 w-4"></i>
         </button>
         <!-- Next -->
-        <button onclick="nextComic()" title="Next Strip" class="flex h-9 px-3 sm:h-10 sm:px-4 items-center justify-center gap-1 rounded-xl border border-[#d99b66]/30 bg-[#d99b66]/10 text-xs sm:text-sm font-medium text-[#eab98e] transition hover:bg-[#d99b66]/20 active:scale-95 cursor-pointer">
+        <button onclick="manualNextComic()" title="Next Strip" class="flex h-9 px-3 sm:h-10 sm:px-4 items-center justify-center gap-1 rounded-xl border border-[#d99b66]/30 bg-[#d99b66]/10 text-xs sm:text-sm font-medium text-[#eab98e] transition hover:bg-[#d99b66]/20 active:scale-95 cursor-pointer">
             <span class="hidden sm:inline">Next</span>
             <i data-lucide="chevron-right" class="h-4 w-4"></i>
         </button>
         <!-- Last Page -->
-        <button onclick="goToComic(comics.length - 1)" id="btn-last" title="Latest Strip" class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-stone-300 transition hover:border-[#d99b66]/40 hover:text-[#e2a874] disabled:opacity-30 disabled:pointer-events-none active:scale-90 cursor-pointer">
+        <button onclick="manualGoToComic(comics.length - 1)" id="btn-last" title="Latest Strip" class="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-stone-300 transition hover:border-[#d99b66]/40 hover:text-[#e2a874] disabled:opacity-30 disabled:pointer-events-none active:scale-90 cursor-pointer">
             <i data-lucide="chevrons-right" class="h-4 w-4 sm:h-5 sm:w-5"></i>
         </button>
     </footer>
@@ -113,34 +142,64 @@
 
     <!-- Application Script -->
     <script>
-        // Comic Data Array (Strict sequential order requested)
         const comics = [
             { number: 1, title: "Expensive Drink", subtitle: "Gorilla Bar Series: Expensive Drink", src: "comics/01-expensive.jpg" },
             { number: 2, title: "The Bare Minimum", subtitle: "Gorilla Bar Series: The Bare Minimum", src: "comics/02-bare-minimum.jpg" },
             { number: 3, title: "Bison", subtitle: "Gorilla Bar Series: Bison", src: "comics/03-bison.jpg" },
             { number: 4, title: "High Spirits", subtitle: "Gorilla Bar Series: High Spirits", src: "comics/04-high-spirits.jpg" },
-	    { number: 5, title: "Last Call", subtitle: "Gorilla Bar Series: Last Call", src: "comics/05-last-call.jpg" },
-	    { number: 6, title: "No Joke Pricing", subtitle: "Gorilla Bar Series: No Joke Pricing", src: "comics/06-no-joke-pricing.jpg" },
-	    { number: 7, title: "Not On A Diet", subtitle: "Gorilla Bar Series: Not On A Diet", src: "comics/07-not-on-a-diet.jpg" },
-	    { number: 8, title: "Wheezing", subtitle: "Gorilla Bar Series: Wheezing", src: "comics/08-wheezing.jpg" },
-	    { number: 9, title: "Draft", subtitle: "Gorilla Bar Series: Wheezing", src: "comics/09-draft.jpg" },
+            { number: 5, title: "Last Call", subtitle: "Gorilla Bar Series: Last Call", src: "comics/05-last-call.jpg" },
+            { number: 6, title: "No Joke Pricing", subtitle: "Gorilla Bar Series: No Joke Pricing", src: "comics/06-no-joke-pricing.jpg" },
+            { number: 7, title: "Not On A Diet", subtitle: "Gorilla Bar Series: Not On A Diet", src: "comics/07-not-on-a-diet.jpg" },
+            { number: 8, title: "Wheezing", subtitle: "Gorilla Bar Series: Wheezing", src: "comics/08-wheezing.jpg" },
+            { number: 9, title: "Draft", subtitle: "Gorilla Bar Series: Draft", src: "comics/09-draft.jpg" },
             { number: 10, title: "On The Rocks", subtitle: "Gorilla Bar Series: On The Rocks", src: "comics/10-on-the-rocks.jpg" },
-	    { number: 11, title: "Camelback", subtitle: "Gorilla Bar Series: Camelback", src: "comics/11-camelback.jpg" }
+            { number: 11, title: "Camelback", subtitle: "Gorilla Bar Series: Camelback", src: "comics/11-camelback.jpg" }
         ];
 
         let currentIndex = 0;
+        let slideshowInterval = null;
+        let statusPillTimeout = null;
+        let isSwipeGesture = false;
+        const SLIDESHOW_DELAY_MS = 15000;
 
         const imgElement = document.getElementById("comic-image");
         const subtitleElement = document.getElementById("comic-subtitle");
         const counterBadge = document.getElementById("counter-badge");
         const btnFirst = document.getElementById("btn-first");
         const btnLast = document.getElementById("btn-last");
+        const btnSlideshow = document.getElementById("btn-slideshow");
+        const progressBar = document.getElementById("progress-bar");
+        const statusPill = document.getElementById("status-pill");
         const episodeListContainer = document.getElementById("episode-list");
+
+        function resetProgressBar(animate) {
+            progressBar.classList.remove("animate-progress");
+            progressBar.style.width = "0%";
+            if (animate) {
+                void progressBar.offsetWidth; // Force reflow to restart CSS animation cleanly
+                progressBar.classList.add("animate-progress");
+            }
+        }
+
+        function flashStatusPill(isPlaying) {
+            statusPill.innerHTML = isPlaying
+                ? `<i data-lucide="play" class="h-3 w-3"></i><span>Auto-play (15s)</span>`
+                : `<i data-lucide="pause" class="h-3 w-3"></i><span>Paused</span>`;
+            lucide.createIcons();
+
+            statusPill.classList.remove("opacity-0");
+            statusPill.classList.add("opacity-100");
+
+            clearTimeout(statusPillTimeout);
+            statusPillTimeout = setTimeout(() => {
+                statusPill.classList.remove("opacity-100");
+                statusPill.classList.add("opacity-0");
+            }, 1400);
+        }
 
         function updateView() {
             const comic = comics[currentIndex];
             
-            // Fade out effect
             imgElement.style.opacity = "0";
             imgElement.style.transform = "scale(0.98)";
 
@@ -149,7 +208,6 @@
                 subtitleElement.textContent = `#${comic.number} • ${comic.title}`;
                 counterBadge.textContent = `${comic.number} / ${comics.length}`;
                 
-                // Fade in effect
                 imgElement.style.opacity = "1";
                 imgElement.style.transform = "scale(1)";
             }, 120);
@@ -157,6 +215,10 @@
             btnFirst.disabled = currentIndex === 0;
             btnLast.disabled = currentIndex === comics.length - 1;
             renderEpisodeList();
+
+            if (slideshowInterval) {
+                resetProgressBar(true);
+            }
         }
 
         function goToComic(index) {
@@ -185,6 +247,86 @@
             updateView();
         }
 
+        function updateSlideshowButton(isPlaying) {
+            if (isPlaying) {
+                btnSlideshow.title = "Pause Slideshow";
+                btnSlideshow.classList.add("border-[#d99b66]/50", "bg-[#d99b66]/20", "text-[#f2c69d]");
+                btnSlideshow.classList.remove("border-white/10", "bg-white/[0.03]", "text-stone-400");
+                btnSlideshow.innerHTML = `<i data-lucide="pause" class="h-4 w-4"></i><span class="hidden md:inline">Auto</span>`;
+            } else {
+                btnSlideshow.title = "Resume Slideshow (15s)";
+                btnSlideshow.classList.remove("border-[#d99b66]/50", "bg-[#d99b66]/20", "text-[#f2c69d]");
+                btnSlideshow.classList.add("border-white/10", "bg-white/[0.03]", "text-stone-400");
+                btnSlideshow.innerHTML = `<i data-lucide="play" class="h-4 w-4"></i><span class="hidden md:inline">Paused</span>`;
+            }
+            lucide.createIcons();
+        }
+
+        function startSlideshow(showFeedback = false) {
+            if (slideshowInterval) return;
+            slideshowInterval = setInterval(() => {
+                nextComic();
+            }, SLIDESHOW_DELAY_MS);
+            updateSlideshowButton(true);
+            resetProgressBar(true);
+            if (showFeedback) flashStatusPill(true);
+        }
+
+        function stopSlideshow(showFeedback = false) {
+            if (!slideshowInterval) return;
+            clearInterval(slideshowInterval);
+            slideshowInterval = null;
+            updateSlideshowButton(false);
+            resetProgressBar(false);
+            if (showFeedback) flashStatusPill(false);
+        }
+
+        function resetSlideshowTimerIfActive() {
+            if (!slideshowInterval) return;
+            clearInterval(slideshowInterval);
+            slideshowInterval = setInterval(() => {
+                nextComic();
+            }, SLIDESHOW_DELAY_MS);
+            resetProgressBar(true);
+        }
+
+        function toggleSlideshow() {
+            if (slideshowInterval) {
+                stopSlideshow(true);
+            } else {
+                startSlideshow(true);
+            }
+        }
+
+        function handleImageTap(event) {
+            if (isSwipeGesture) {
+                isSwipeGesture = false;
+                return;
+            }
+            toggleSlideshow();
+        }
+
+        // Manual Navigation (keeps slideshow running from new slide if currently playing, or stays paused if paused)
+        function manualGoToComic(index) {
+            goToComic(index);
+            resetSlideshowTimerIfActive();
+        }
+
+        function manualNextComic() {
+            nextComic();
+            resetSlideshowTimerIfActive();
+        }
+
+        function manualPrevComic() {
+            prevComic();
+            resetSlideshowTimerIfActive();
+        }
+
+        function manualRandomComic() {
+            randomComic();
+            resetSlideshowTimerIfActive();
+        }
+
         function toggleDrawer(show) {
             const drawer = document.getElementById("episode-drawer");
             if (show) {
@@ -207,7 +349,7 @@
                         : "border-white/10 bg-white/[0.03] text-stone-300 hover:border-[#d99b66]/40 hover:bg-white/[0.06]"
                 }`;
                 btn.onclick = () => {
-                    goToComic(idx);
+                    manualGoToComic(idx);
                     toggleDrawer(false);
                 };
                 btn.innerHTML = `
@@ -221,24 +363,27 @@
             });
         }
 
-        // Keyboard Navigation Support
         window.addEventListener("keydown", (e) => {
             if (!document.getElementById("episode-drawer").classList.contains("hidden")) {
                 if (e.key === "Escape") toggleDrawer(false);
                 return;
             }
-            if (e.key === "ArrowRight") nextComic();
-            if (e.key === "ArrowLeft") prevComic();
-            if (e.key === "Home") goToComic(0);
-            if (e.key === "End") goToComic(comics.length - 1);
+            if (e.key === "ArrowRight") manualNextComic();
+            if (e.key === "ArrowLeft") manualPrevComic();
+            if (e.key === "Home") manualGoToComic(0);
+            if (e.key === "End") manualGoToComic(comics.length - 1);
+            if (e.key === " ") {
+                e.preventDefault();
+                toggleSlideshow();
+            }
         });
 
-        // Mobile Touch Swipe Handlers
         let touchStartX = 0;
         let touchEndX = 0;
 
         document.body.addEventListener("touchstart", (e) => {
             touchStartX = e.changedTouches[0].screenX;
+            isSwipeGesture = false;
         }, false);
 
         document.body.addEventListener("touchend", (e) => {
@@ -249,16 +394,18 @@
         function handleSwipe() {
             const threshold = 45;
             if (touchEndX < touchStartX - threshold) {
-                nextComic(); // Swipe Left -> Next
-            }
-            if (touchEndX > touchStartX + threshold) {
-                prevComic(); // Swipe Right -> Previous
+                isSwipeGesture = true;
+                manualNextComic();
+            } else if (touchEndX > touchStartX + threshold) {
+                isSwipeGesture = true;
+                manualPrevComic();
             }
         }
 
-        // Initialize Lucide Icons & First View
+        // Initialize Lucide Icons, First View & Start 15s Slideshow
         lucide.createIcons();
         updateView();
+        startSlideshow(false);
     </script>
 </body>
 </html>
